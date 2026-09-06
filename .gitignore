@@ -1,0 +1,23 @@
+# Reference/test data — contains real student names, roll numbers and Drive links.
+# Never commit. Tests skip themselves when these are absent.
+fixtures/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.sigcache/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+out/
