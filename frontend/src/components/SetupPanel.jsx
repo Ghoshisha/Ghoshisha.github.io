@@ -47,6 +47,7 @@ const UPLOADS = [
 export default function SetupPanel({
   classInfo,
   onClassInfo,
+  onResetSettings,
   files,
   onFiles,
   onLoad,
@@ -56,7 +57,15 @@ export default function SetupPanel({
   onToggle,
 }) {
   const [showSettings, setShowSettings] = useState(false)
+  // Resetting throws away everything the teacher typed, so it takes two clicks
+  // rather than a browser confirm dialog.
+  const [confirmReset, setConfirmReset] = useState(false)
   const ready = Boolean(files.roster && files.marks)
+
+  const toggleSettings = () => {
+    setShowSettings((v) => !v)
+    setConfirmReset(false)
+  }
 
   if (collapsed) {
     return (
@@ -121,7 +130,7 @@ export default function SetupPanel({
         <button type="button" onClick={() => downloadTemplate('marks', classInfo)}>
           Marks template
         </button>
-        <button type="button" className="link" onClick={() => setShowSettings((v) => !v)}>
+        <button type="button" className="link" onClick={toggleSettings}>
           {showSettings ? 'Hide paper settings' : 'Paper settings, questions & rubric'}
         </button>
       </div>
@@ -140,6 +149,32 @@ export default function SetupPanel({
           <QuestionListEditor classInfo={classInfo} onChange={onClassInfo} />
           <RubricEditor classInfo={classInfo} onChange={onClassInfo} />
           <FeedbackBandsEditor classInfo={classInfo} onChange={onClassInfo} />
+
+          <div className="settings-footer">
+            <p className="hint">
+              These settings are saved in this browser as you edit them, and come back
+              the next time you open the app. Nothing is sent to the server.
+            </p>
+            <button
+              type="button"
+              className={confirmReset ? 'danger' : undefined}
+              onClick={() => {
+                if (!confirmReset) {
+                  setConfirmReset(true)
+                  return
+                }
+                setConfirmReset(false)
+                onResetSettings()
+              }}
+            >
+              {confirmReset ? 'Really reset — discard my settings' : 'Reset to defaults'}
+            </button>
+            {confirmReset && (
+              <button type="button" className="link" onClick={() => setConfirmReset(false)}>
+                Cancel
+              </button>
+            )}
+          </div>
         </div>
       )}
     </section>
