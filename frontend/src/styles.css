@@ -151,6 +151,18 @@ button.link {
   padding: 2px 4px;
 }
 
+button.danger {
+  border-color: var(--error);
+  color: var(--error);
+  font-weight: 600;
+}
+
+button.danger:hover:not(:disabled) {
+  border-color: var(--error);
+  color: #fff;
+  background: var(--error);
+}
+
 table.editor,
 table.preview {
   width: 100%;
@@ -379,6 +391,19 @@ main {
   margin: 0;
   border-bottom: 1px solid var(--line);
   border-radius: 0;
+}
+
+.settings-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.settings-footer .hint {
+  flex: 1 1 320px;
+  margin: 0;
 }
 
 /* ── Student list ─────────────────────────────────────────────────────────── */

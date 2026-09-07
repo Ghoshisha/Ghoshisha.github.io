@@ -12,6 +12,11 @@ import {
   requestPreview,
   scoreStudent,
 } from './lib/api'
+import {
+  clearStoredClassInfo,
+  loadStoredClassInfo,
+  storeClassInfo,
+} from './lib/settings'
 
 const EMPTY_FILES = {
   roster: null,
@@ -44,6 +49,10 @@ export default function App() {
   const [batchResult, setBatchResult] = useState(null)
   const [server, setServer] = useState('waking')
 
+  // The untouched server defaults, kept so "reset" needs no second round trip -- and
+  // so the autosave below can tell "never edited" from "edited back to the defaults".
+  const pristine = useRef(null)
+
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -53,7 +62,11 @@ export default function App() {
       if (!awake) return
       try {
         const payload = await fetchDefaults()
-        if (!cancelled) setClassInfo(payload)
+        if (cancelled) return
+        pristine.current = payload
+        // Paper settings from a previous visit win over the defaults they were
+        // derived from; anything unrecognisable falls back to the defaults.
+        setClassInfo(loadStoredClassInfo(payload) ?? payload)
       } catch (exc) {
         if (!cancelled) setError(exc.message)
       }
@@ -61,6 +74,19 @@ export default function App() {
     return () => {
       cancelled = true
     }
+  }, [])
+
+  // Paper settings survive a reload; marks and uploads deliberately do not. Untouched
+  // defaults are not written, so a future change to them is not shadowed by a stale copy.
+  useEffect(() => {
+    if (!classInfo || classInfo === pristine.current) return
+    storeClassInfo(classInfo)
+  }, [classInfo])
+
+  const onResetSettings = useCallback(() => {
+    if (!pristine.current) return
+    clearStoredClassInfo()
+    setClassInfo(pristine.current)
   }, [])
 
   // Students carrying whatever marks are currently on screen.
@@ -220,6 +246,7 @@ export default function App() {
         <SetupPanel
           classInfo={classInfo}
           onClassInfo={setClassInfo}
+          onResetSettings={onResetSettings}
           files={files}
           onFiles={setFiles}
           onLoad={loadClass}
@@ -297,8 +324,8 @@ export default function App() {
 
       <footer>
         <p>
-          Nothing is stored. Marks you edit here live in this browser tab until you
-          generate.
+          Nothing is stored on the server. Paper settings are remembered in this
+          browser; marks you edit here live in this tab until you generate.
         </p>
       </footer>
     </main>
