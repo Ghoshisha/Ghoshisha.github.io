@@ -26,12 +26,17 @@ export default function QuestionListEditor({ classInfo, onChange }) {
     // batch fails validation with "group names unknown questions".
     if (key === 'qno') {
       const previous = questions[index].qno
-      setGroups(
-        questionGroups.map((group) => ({
+      // One combined update: two separate onChange calls would each spread the same
+      // stale classInfo, and the second would silently overwrite the first.
+      onChange({
+        ...classInfo,
+        questions: next,
+        questionGroups: questionGroups.map((group) => ({
           ...group,
           questions: group.questions.map((q) => (q === previous ? value : q)),
         })),
-      )
+      })
+      return
     }
     setQuestions(next)
   }
@@ -44,15 +49,16 @@ export default function QuestionListEditor({ classInfo, onChange }) {
 
   const removeQuestion = (index) => {
     const removed = questions[index].qno
-    setQuestions(questions.filter((_, i) => i !== index))
-    setGroups(
-      questionGroups
+    onChange({
+      ...classInfo,
+      questions: questions.filter((_, i) => i !== index),
+      questionGroups: questionGroups
         .map((group) => ({
           ...group,
           questions: group.questions.filter((q) => q !== removed),
         }))
         .filter((group) => group.questions.length > 0),
-    )
+    })
   }
 
   const updateGroup = (index, key, value) =>
